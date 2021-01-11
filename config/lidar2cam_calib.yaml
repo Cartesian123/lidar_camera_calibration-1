@@ -1,0 +1,26 @@
+%YAML:1.0
+---
+
+# SENSOR_TOPIC
+lidar_topic: /rslidar_points
+camera_topic: /usb_cam0/image_raw/compressed
+
+# MARKER_INFO
+# marker length, unit: meter
+marker_length: [ 0.27328, 0.0649065 ]
+# marker map layout
+marker_map_file: aruco_map_90_214_7_143.yaml
+
+# CAMERA_PARAM
+# camera parameters file in $(find rs_lidar2cam_calib)/config
+cam_intrinsic_file: camera_intrinsic_file.yaml
+
+# CALIBRATION_INFO
+# [min_x, max_x, min_y, max_y, min_z, max_z], unit: meter
+cloud_roi: [ -3.0, 3.0, 1.5, 8.2, -1.3, 1.2 ]
+# distance between board and background, unit: meter
+distance_thres: 0.15
+# frames used to calibration, if set to -1, use all frames in rosbag
+calib_frame_num: -1
+# calibration result file will save into $(find rs_lidar2cam_calib)/config
+calib_result_file: calib_result.yaml

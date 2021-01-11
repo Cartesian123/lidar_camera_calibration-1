@@ -1,0 +1,10 @@
+
+<launch>
+  <node pkg="lidar_cam_calib_sdk" type="lidar2cam_calib_node" name="lidar2cam_calib_node" output="screen" required="true">
+    <param name="path" type="str" value="$(find lidar_cam_calib_sdk)/config" />
+    <param name="file_name" type="str" value="lidar2cam_calib.yaml" />
+  </node>
+
+  <node pkg="rviz" name="rviz" type="rviz"  args="-d $(find lidar_cam_calib_sdk)/rviz/lidar2cam_calib_node.rviz">
+  </node>
+</launch>
