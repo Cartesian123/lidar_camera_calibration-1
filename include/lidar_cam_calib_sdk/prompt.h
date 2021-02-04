@@ -36,8 +36,6 @@ namespace cicv
 #define WHITE "\033[37m"  /* White */
 
 #include <iostream>
-// conflic with #include <opencv2/opencv.hpp>
-// #define NORMAL (std::cout << RESET)
 #define INFO (std::cout << GREEN)
 #define WARN (std::cout << YELLOW)
 #define ERROR (std::cout << RED)
@@ -45,12 +43,16 @@ namespace cicv
 #define END (std::endl)
 #define REND "\033[0m" << std::endl
 
+#define FLUSHCOUT (std::cerr << GREEN)
+#define FLUSHWCOUT (std::cerr << BOLDYELLOW)
+#define FLUSHICOUT (std::cerr << GREEN)
+#define FLUSHEND "\033[0m\r" << std::flush
+
 #define PointType pcl::PointXYZ
 #define CloudType pcl::PointCloud<PointType>
 #define CloudTypePtr CloudType::Ptr
 #define CloudTypeConst CloudType::ConstPtr
 
-#define RSDEBUG 1
-
-}  // cicv namespace
+#define RSDEBUG 0
+}  // namespace cicv
 #endif  // PROMPT_H

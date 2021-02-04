@@ -41,34 +41,6 @@
 
 namespace cicv
 {
-// struct ProjectionCost
-// {
-//   ProjectionCost(const pcl::PointXYZ sp, const pcl::PointXYZ tp) : _s_p(sp), _t_p(tp)
-//   {
-//   }
-//   template <typename T>
-//   bool operator()(const T* const angle_axis, const T* const t, T* residual) const
-//   {
-//     T s_p[3], t_p[3];
-//     s_p[0] = T(_s_p.x);
-//     s_p[1] = T(_s_p.y);
-//     s_p[2] = T(_s_p.z);
-//     // The value angle_axis is a triple whose norm is an angle in radians, and whose direction is aligned with the
-//     axis
-//     // of rotation.
-//     ceres::AngleAxisRotatePoint(angle_axis, s_p, t_p);
-//     t_p[0] = t_p[0] + t[0];
-//     t_p[1] = t_p[1] + t[1];
-//     t_p[2] = t_p[2] + t[2];
-//     residual[0] = t_p[0] - T(_t_p.x);
-//     residual[1] = t_p[1] - T(_t_p.y);
-//     residual[2] = t_p[2] - T(_t_p.z);
-//     return true;
-//   }
-//   const pcl::PointXYZ _s_p;
-//   const pcl::PointXYZ _t_p;
-// };
-
 struct ProjectionCost
 {
   ProjectionCost(const pcl::PointCloud<pcl::PointXYZ>& laser_corners,
@@ -140,14 +112,14 @@ ArucoCalib::ArucoCalib(const std::string& config_path, const std::string& file_n
 
   camera_corners_ptr_.reset(new pcl::PointCloud<pcl::PointXYZ>);
   lidar_corners_ptr_.reset(new pcl::PointCloud<pcl::PointXYZ>);
-#if 1
-  detection_thread_.reset(new boost::thread(boost::bind(&ArucoCalib::detectDataStream, this)));
-#endif
 }
 
 ArucoCalib::~ArucoCalib()
 {
-  detection_thread_->interrupt();
+  if (detection_thread_->joinable())
+  {
+    detection_thread_->join();
+  }
 }
 
 bool ArucoCalib::readConfigFile(const std::string& config_file_name)
@@ -161,8 +133,13 @@ bool ArucoCalib::readConfigFile(const std::string& config_file_name)
   fs_reader["calib_frame_num"] >> calib_frame_num_;
   fs_reader["calib_result_file"] >> calib_result_file_;
   fs_reader.release();
-  if (calib_frame_num_ < 0 && calib_frame_num_ != -1)
+  if (calib_frame_num_ < 0)
   {
+    if (calib_frame_num_ == -1)
+    {
+      detection_thread_.reset(new boost::thread(boost::bind(&ArucoCalib::detectDataStream, this)));
+      return true;
+    }
     ERROR << "calib frame num should large than 0 or equal to -1!" << REND;
     return false;
   }
@@ -170,7 +147,7 @@ bool ArucoCalib::readConfigFile(const std::string& config_file_name)
 }
 
 // 返回值: -1-不是有效帧, 0-有效帧但未结束, 1-有效帧且结束
-bool ArucoCalib::process(const cv::Mat& input_image, const pcl::PointCloud<pcl::PointXYZI>::Ptr& input_cloud_ptr)
+int ArucoCalib::process(const cv::Mat& input_image, const pcl::PointCloud<pcl::PointXYZI>::Ptr& input_cloud_ptr)
 {
   INFO << "\nCurrent frame number is: " << frame_num_ << REND;
   {
@@ -190,7 +167,7 @@ bool ArucoCalib::process(const cv::Mat& input_image, const pcl::PointCloud<pcl::
   {
     WARN << "[Mono Pattern]: WRONG!" << REND;
     INFO << "Valid frame number is: " << valid_num_ << REND;
-    return false;
+    return -1;
   }
 
   // process pointcloud
@@ -202,7 +179,7 @@ bool ArucoCalib::process(const cv::Mat& input_image, const pcl::PointCloud<pcl::
   {
     WARN << "[Laser Pattern]: WRONG!" << REND;
     INFO << "Valid frame number is: " << valid_num_ << REND;
-    return false;
+    return -1;
   }
 
   *camera_corners_ptr_ += *camera_corner_cloud_ptr;
@@ -216,10 +193,14 @@ bool ArucoCalib::process(const cv::Mat& input_image, const pcl::PointCloud<pcl::
   if (valid_num_ == calib_frame_num_)
   {
     INFO << "\nUse " << valid_num_ << " frames to calibration." << REND;
-    computeTransform();
-    std::exit(0);
+    return 1;
   }
-  return true;
+  if (calib_frame_num_ == -1 && valid_num_ > 50)
+  {
+    INFO << "\nUse " << valid_num_ << " frames to calibration." << REND;
+    return 1;
+  }
+  return 0;
 }
 
 bool ArucoCalib::processImage(pcl::PointCloud<pcl::PointXYZ>::Ptr camera_corner_cloud_ptr)
@@ -529,6 +510,7 @@ void ArucoCalib::detectDataStream()
 {
   int pre_num = 0;
   int num = 0;
+  // 数据等待超时提醒
   while (pre_num < frame_num_ || frame_num_ == 0)
   {
     pre_num = frame_num_;
@@ -540,19 +522,29 @@ void ArucoCalib::detectDataStream()
     }
     boost::this_thread::sleep_for(boost::chrono::seconds(3));
   }
-  if (valid_num_ == calib_frame_num_)
+
+  if (calib_frame_num_ > -1)
   {
-    return;
+    if (valid_num_ == calib_frame_num_)
+    {
+      return;
+    }
+    // else
+    // {
+    //   INFO << "The number of valid frame "<<valid_num_ << " is small than "<< calib_frame_num_<<
+    //   " to compute the transform matrix." << REND;
+    // }
   }
-  else if (valid_num_ < 10)
+  else if (calib_frame_num_ == -1)
   {
-    WARN << "The number of valid frame is too small to compute the transform matrix." << REND;
+    if (valid_num_ > 50)
+    {
+      return;
+    }
   }
   else
   {
-    INFO << "\nUse " << valid_num_ << " frames to calibration." << REND;
-    computeTransform();
-    std::exit(0);
+    WARN << "Should not be there!" << REND;
   }
 }
 

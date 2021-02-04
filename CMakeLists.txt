@@ -30,16 +30,16 @@ link_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib)
 set(LIB_NAME "lidar2cam_calib")
 set(incs
     include/lidar_cam_calib_sdk/lidar2cam_calib.h
+    include/lidar_cam_calib_sdk/aruco_calib.h
+    include/lidar_cam_calib_sdk/common.h
+    include/lidar_cam_calib_sdk/laser_pattern.h
+    include/lidar_cam_calib_sdk/mono_pattern.h
+    include/lidar_cam_calib_sdk/prompt.h
     )
 set(srcs
-    src/prompt.h 
-    src/common.h
     src/common.cpp
-    src/mono_pattern.h
     src/mono_pattern.cpp
-    src/laser_pattern.h
     src/laser_pattern.cpp
-    src/aruco_calib.h 
     src/aruco_calib.cpp
     src/lidar2cam_calib.cpp
     )
@@ -75,4 +75,9 @@ set(LIB_DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/../lidar2cam_calib_release/lib/)
 #                            $<TARGET_FILE:${LIB_NAME}>
 #                            ${LIB_DESTINATION}
 #                            )
+
+
+### Test
+add_executable(generate_marker tools/generate_marker.cpp)
+target_link_libraries(generate_marker ${LIB_NAME} ${catkin_LIBRARIES})
 

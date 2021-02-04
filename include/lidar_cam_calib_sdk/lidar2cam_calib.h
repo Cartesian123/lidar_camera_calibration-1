@@ -28,6 +28,8 @@
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 
+#include "prompt.h"
+
 namespace cicv
 {
 class ArucoCalib;
@@ -37,7 +39,8 @@ public:
   Lidar2CamCalib(const std::string& config_path, const std::string& file_name);
   ~Lidar2CamCalib();
 
-  bool process(const cv::Mat& input_image, const pcl::PointCloud<pcl::PointXYZI>::Ptr& input_cloud_ptr);
+  int process(const cv::Mat& input_image, const pcl::PointCloud<pcl::PointXYZI>::Ptr& input_cloud_ptr);
+  void compute();
   const cv::Mat& getMarkerImage();
   const pcl::PointCloud<pcl::PointXYZ>& getBoardCloud();
   const pcl::PointCloud<pcl::PointXYZ>& getEdgeCloud();

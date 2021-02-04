@@ -40,7 +40,8 @@ public:
   ArucoCalib(const std::string& config_path, const std::string& file_name);
   ~ArucoCalib();
 
-  bool process(const cv::Mat& input_image, const pcl::PointCloud<pcl::PointXYZI>::Ptr& input_cloud_ptr);
+  int process(const cv::Mat& input_image, const pcl::PointCloud<pcl::PointXYZI>::Ptr& input_cloud_ptr);
+  void computeTransform();
   const cv::Mat& getMarkerImage();
   const pcl::PointCloud<pcl::PointXYZ>& getBoardCloud();
   const pcl::PointCloud<pcl::PointXYZ>& getEdgeCloud();
@@ -52,7 +53,6 @@ private:
   bool processCloud(const pcl::PointCloud<pcl::PointXYZI>::Ptr input_cloud_ptr,
                     pcl::PointCloud<pcl::PointXYZ>::Ptr laser_corner_cloud_ptr);
   bool isValidCorners(const pcl::PointCloud<pcl::PointXYZ>::Ptr corner_cloud);
-  void computeTransform();
   bool computeTransICP(const pcl::PointCloud<pcl::PointXYZ>::Ptr source_cloud,
                        const pcl::PointCloud<pcl::PointXYZ>::Ptr target_cloud, Eigen::Matrix4d& trans);
   bool computeTransSVD(const pcl::PointCloud<pcl::PointXYZ>::Ptr source_cloud,

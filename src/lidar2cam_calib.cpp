@@ -34,7 +34,7 @@ Lidar2CamCalib::~Lidar2CamCalib()
 {
 }
 
-bool Lidar2CamCalib::process(const cv::Mat& input_image, const pcl::PointCloud<pcl::PointXYZI>::Ptr& input_cloud_ptr)
+int Lidar2CamCalib::process(const cv::Mat& input_image, const pcl::PointCloud<pcl::PointXYZI>::Ptr& input_cloud_ptr)
 {
   return aruco_calib_impl_->process(input_image, input_cloud_ptr);
 }
@@ -57,6 +57,11 @@ const pcl::PointCloud<pcl::PointXYZ>& Lidar2CamCalib::getEdgeCloud()
 const pcl::PointCloud<pcl::PointXYZ>& Lidar2CamCalib::getCornerCloud()
 {
   return aruco_calib_impl_->getLidarCornerCloud();
+}
+
+void Lidar2CamCalib::compute()
+{
+  return aruco_calib_impl_->computeTransform();
 }
 
 }  // namespace cicv

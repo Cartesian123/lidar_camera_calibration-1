@@ -130,7 +130,9 @@ bool MonoPattern::checkIds(const std::vector<aruco::Marker>& markers)
 
   if (detected_marker_num < marker_ids_.size() * 0.4)
   {
+#if RSDEBUG
     WARN << "detected marker num is: " << detected_marker_num << REND;
+#endif
     return false;
   }
   return true;

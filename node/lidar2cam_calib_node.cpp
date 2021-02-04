@@ -21,6 +21,8 @@
  *****************************************************************************/
 
 #include <boost/bind.hpp>
+#include <thread>
+#include <signal.h>
 
 #include <std_msgs/Header.h>
 #include <sensor_msgs/CompressedImage.h>
@@ -38,19 +40,20 @@
 
 #include "lidar2cam_calib.h"
 
-#define YELLOW "\033[33m" /* Yellow */
-#define GREEN "\033[32m"  /* Green */
-#define REND "\033[0m" << std::endl
-
-#define WARN (std::cout << YELLOW)
-#define INFO (std::cout << GREEN)
-
 std::unique_ptr<cicv::Lidar2CamCalib> g_lidar_camera_ptr;
 ros::Publisher g_marker_image_pub;
 ros::Publisher g_input_cloud_pub, g_board_cloud_pub;
 ros::Publisher g_edge_cloud_pub, g_corner_cloud_pub;
 
 std::vector<std::size_t> g_time_v;
+bool data_ready_ = false;
+bool calib_finish_ = false;
+
+static void calibrationHandler(int sig)
+{
+  calib_finish_ = true;
+  ros::shutdown();
+}
 
 void publishImage(const ros::Publisher& image_pub, const std_msgs::Header& header, const cv::Mat& image)
 {
@@ -82,6 +85,16 @@ bool isFileExist(const std::string& file_name)
 void callback(const sensor_msgs::CompressedImageConstPtr input_image_msg,
               const sensor_msgs::PointCloud2ConstPtr input_cloud_msg)
 {
+  if (calib_finish_)
+  {
+    INFO << "Calibration is finished! Please stop the process!" << FLUSHEND;
+    return;
+  }
+  if (data_ready_)
+  {
+    INFO << "Data capture is ready! Calibration..." << FLUSHEND;
+    return;
+  }
   std_msgs::Header image_header = input_image_msg->header;
   std_msgs::Header cloud_header = input_cloud_msg->header;
 
@@ -110,8 +123,9 @@ void callback(const sensor_msgs::CompressedImageConstPtr input_image_msg,
   }
 
   // process
-  if (!g_lidar_camera_ptr->process(input_image, input_cloud_ptr))
+  if (g_lidar_camera_ptr->process(input_image, input_cloud_ptr) > 0)
   {
+    data_ready_ = true;
     return;
   }
 
@@ -136,9 +150,25 @@ void callback(const sensor_msgs::CompressedImageConstPtr input_image_msg,
   publishCloud(g_corner_cloud_pub, cloud_header, lidar_corner_cloud_ptr);
 }
 
+void getCalibResult()
+{
+  while (ros::ok() && !calib_finish_)
+  {
+    if (data_ready_)
+    {
+      INFO << "Start calibration!" << REND;
+      g_lidar_camera_ptr->compute();
+      data_ready_ = false;
+      calib_finish_ = true;
+    }
+    boost::this_thread::sleep_for(boost::chrono::seconds(1));
+  }
+}
+
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "rs_lidar2cam_calib_node");
+  signal(SIGINT, calibrationHandler);
+  ros::init(argc, argv, "rs_lidar2cam_calib_node", ros::init_options::NoSigintHandler);
   ros::NodeHandle nh;
   ros::NodeHandle priv_nh("~");
 
@@ -186,6 +216,16 @@ int main(int argc, char** argv)
       MySyncPolicy;
   message_filters::Synchronizer<MySyncPolicy> sync(MySyncPolicy(10), camera_sub, lidar_sub);
   sync.registerCallback(boost::bind(&callback, _1, _2));
+
+  std::thread compute_thread;
+  const auto& func1 = [] { getCalibResult(); };
+  compute_thread = std::thread(func1);
+
   ros::spin();
+  if (compute_thread.joinable())
+  {
+    compute_thread.join();
+  }
+
   return 0;
 }
