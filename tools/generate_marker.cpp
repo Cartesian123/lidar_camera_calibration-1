@@ -1,8 +1,8 @@
 #include <iostream>
 #include <string>
 #include <stdio.h>
-#include <opencv2/core/core.hpp>  
-#include <opencv2/highgui/highgui.hpp>  
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
 #include <opencv2/aruco/charuco.hpp>
 #include "opencv2/imgproc.hpp"
 
@@ -11,67 +11,79 @@ using namespace std;
 
 void gengerate_aruco_code(const int& marker_id)
 {
-	cv::Mat markerImage;
-	cv::Ptr<cv::aruco::Dictionary> mdictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_1000);
-	cv::aruco::drawMarker(mdictionary, marker_id, 1000, markerImage, 1);
+  cv::Mat marker_img;
+  cv::Ptr<cv::aruco::Dictionary> mdictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_1000);
+  cv::aruco::drawMarker(mdictionary, marker_id, 1000, marker_img, 1);
 
-	imshow("test", markerImage);
-	waitKey();
-    std::string image_name = "aruco_marker_"+std::to_string(marker_id)+".jpg";
-	imwrite(image_name, markerImage);
+  imshow("test", marker_img);
+  waitKey();
+  std::string image_name = "aruco_marker_" + std::to_string(marker_id) + ".jpg";
+  imwrite(image_name, marker_img);
+}
+void generate_block(const std::string& image_name, const int& marker_x, const int& marker_y, const int& marker_length,
+                    const int& marker_separation)
+{
+  cv::Mat raw_img = imread(image_name, 0);
+
+  int channel = raw_img.channels();
+  for (int i = 0; i < marker_y + 1; i++)
+  {
+    for (int j = 0; j < marker_x + 1; j++)
+    {
+      for (int row = i * (marker_length + marker_separation);
+           row < i * (marker_length + marker_separation) + marker_separation; row++)
+      {
+        for (int col = j * (marker_length + marker_separation);
+             col < j * (marker_length + marker_separation) + marker_separation; col++)
+        {
+          if (channel == 1)
+          {
+            raw_img.at<uchar>(row, col) = 255 - raw_img.at<uchar>(row, col);
+          }
+        }
+      }
+    }
+  }
+  imshow("grid", raw_img);
+  waitKey();
+  imwrite(image_name, raw_img);
 }
 
-void gengerate_aruco_grid_code(const int& marker_id)
+void gengerate_aruco_grid_code(const int& marker_id, const int& marker_x, const int& marker_y, const int& marker_length,
+                               const int& marker_separation)
 {
-    int markersX = 2;
-    int markersY = 2;
-    int markerLength = 800;
-    int markerSeparation = 200;
-    int margins = 200;
+  cv::Size imageSize;
+  imageSize.width = marker_x * (marker_length + marker_separation) + marker_separation;
+  imageSize.height = marker_y * (marker_length + marker_separation) + marker_separation;
 
-    cv::Size imageSize;
-    imageSize.width = markersX * (markerLength + markerSeparation) - markerSeparation + 2 * margins;
-    imageSize.height = markersY * (markerLength + markerSeparation) - markerSeparation + 2 * margins;
+  cv::Mat marker_img;
+  cv::Ptr<cv::aruco::Dictionary> mdictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
+  cv::Ptr<cv::aruco::GridBoard> board = cv::aruco::GridBoard::create(marker_x, marker_y, float(marker_length),
+                                                                     float(marker_separation), mdictionary, marker_id);
+  board->draw(imageSize, marker_img, marker_separation, 1);
 
-	cv::Mat markerImage;
-	cv::Ptr<cv::aruco::Dictionary> mdictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
-    cv::Ptr<cv::aruco::GridBoard> board = cv::aruco::GridBoard::create(markersX, markersY, float(markerLength), float(markerSeparation), mdictionary,marker_id);
-	board->draw(imageSize, markerImage, margins, 1);
-    //fill black block
-    int height = markerImage.rows;
-    int width = markerImage.cols;
-    int channel = markerImage.channels();
-    // std::cout<<"img height: "<<height<<" width: "<<width<<" channel: "<<channel<<std::endl;
-    for(int i = 0; i < markersX+1;i++)
-    {
-        for(int j = 0; j <markersY+1;j++)
-        {
-            for (int row = i*(markerLength+markerSeparation); row < i*(markerLength+markerSeparation)+markerSeparation; row++) 
-            {
-                for (int col = j*(markerLength+markerSeparation); col < j*(markerLength+markerSeparation)+markerSeparation; col++)
-                {
-                    if (channel == 1)
-                    {
-                        markerImage.at<uchar>(row, col) = 255 - markerImage.at<uchar>(row, col);
-                    }
-                }
-            }
-        }
-    }
-	imshow("grid", markerImage);
-	waitKey();
-    std::string image_name = "aruco_grid_marker_"+std::to_string(marker_id)+".jpg";
-	imwrite(image_name, markerImage);
+  imshow("grid", marker_img);
+  waitKey();
+  std::string image_name = "aruco_grid_marker_" + std::to_string(marker_id) + ".jpg";
+  imwrite(image_name, marker_img);
 }
 
 int main(int argc, char* argv[])
 {
-    if(argc<2)
-    {
-     std::cerr<<"Usage: "<< argv[0] <<" marker_id"<<std::endl;
-     exit(1);
-    }
-    int marker_id = std::atoi(argv[1]);
-	gengerate_aruco_grid_code(marker_id);
-	return 0;
+  if (argc < 6)
+  {
+    std::cerr << "Usage: " << argv[0] << " marker_id marker_num_col maker_num_row marker_size maker_separation"
+              << std::endl;
+    exit(1);
+  }
+  int marker_id = std::atoi(argv[1]);
+  int marker_x = std::atoi(argv[2]);
+  int marker_y = std::atoi(argv[3]);
+  int marker_length = std::atoi(argv[4]);
+  int marker_separation = std::atoi(argv[5]);
+  std::string image_name = "aruco_grid_marker_" + std::to_string(marker_id) + ".jpg";
+  gengerate_aruco_grid_code(marker_id, marker_x, marker_y, marker_length, marker_separation);
+  generate_block(image_name, marker_x, marker_y, marker_length, marker_separation);
+
+  return 0;
 }
