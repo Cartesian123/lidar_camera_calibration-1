@@ -3,7 +3,7 @@
  * Suteng Innovation Technology Co., Ltd. www.cicv.ai
 
  * This software is provided to you directly by cicv and might
- * only be used to access cicv LiDAR. Any compilation,
+ * only be used to LiDAR and camera calibration. Any compilation,
  * modification, exploration, reproduction and redistribution are
  * restricted without cicv's prior consent.
  * THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESSED OR IMPLIED
@@ -218,14 +218,14 @@ bool ArucoCalib::processImage(pcl::PointCloud<pcl::PointXYZ>::Ptr camera_corner_
   //  judge corner cloud is valid or not
   if (!isValidCorners(camera_corner_cloud_ptr))
   {
-#if RSDEBUG
+#if LCDEBUG
     WARN << "corner points is invalid!" << REND;
 #endif
     camera_corner_cloud_ptr->clear();
     return false;
   }
 
-#if RSDEBUG
+#if LCDEBUG
   // test points order
   std::vector<cv::Scalar> colors{ cv::Scalar(0, 0, 255), cv::Scalar(0, 255, 0), cv::Scalar(255, 0, 0),
                                   cv::Scalar(255, 255, 0) };
@@ -265,7 +265,7 @@ bool ArucoCalib::processCloud(const pcl::PointCloud<pcl::PointXYZI>::Ptr input_c
   // judge corners is valid or not
   if (!isValidCorners(lidar_corner_cloud_ptr))
   {
-#if RSDEBUG
+#if LCDEBUG
     WARN << "corner points is invalid!" << REND;
 #endif
     lidar_corner_cloud_ptr->clear();
@@ -308,7 +308,7 @@ bool ArucoCalib::isValidCorners(const pcl::PointCloud<pcl::PointXYZ>::Ptr corner
   float length_core = 1 - length_diff / board_length;
   float angle_core = 1 - angle_diff / board_angle;
 
-#if RSDEBUG
+#if LCDEBUG
   INFO << "length core is: " << length_core * 100 << REND;
   INFO << "angle core is: " << angle_core * 100 << REND;
 #endif
@@ -376,7 +376,7 @@ bool ArucoCalib::computeTransOpt(const pcl::PointCloud<pcl::PointXYZ>::Ptr sourc
   ceres::Solver::Summary summary;
   ceres::Solve(option, &problem, &summary);
 
-#if RSDEBUG
+#if LCDEBUG
   INFO << summary.BriefReport() << REND;
 #endif
 
@@ -409,7 +409,7 @@ bool ArucoCalib::computeTransICP(const pcl::PointCloud<pcl::PointXYZ>::Ptr sourc
   icp.align(Final);
   if (!icp.hasConverged())
   {
-#if RSDEBUG
+#if LCDEBUG
     WARN << "icp has unconverged!" << REND;
 #endif
     return false;

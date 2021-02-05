@@ -3,7 +3,7 @@
  * Suteng Innovation Technology Co., Ltd. www.cicv.ai
 
  * This software is provided to you directly by cicv and might
- * only be used to access cicv LiDAR. Any compilation,
+ * only be used to LiDAR and camera calibration. Any compilation,
  * modification, exploration, reproduction and redistribution are
  * restricted without cicv's prior consent.
 
@@ -53,6 +53,6 @@ namespace cicv
 #define CloudTypePtr CloudType::Ptr
 #define CloudTypeConst CloudType::ConstPtr
 
-#define RSDEBUG 0
+#define LCDEBUG 0
 }  // namespace cicv
 #endif  // PROMPT_H

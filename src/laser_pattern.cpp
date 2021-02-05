@@ -4,7 +4,7 @@
  * Suteng Innovation Technology Co., Ltd. www.cicv.ai
 
  * This software is provided to you directly by cicv and might
- * only be used to access cicv LiDAR. Any compilation,
+ * only be used to LiDAR and camera calibration. Any compilation,
  * modification, exploration, reproduction and redistribution are
  * restricted without cicv's prior consent.
 
@@ -234,7 +234,7 @@ bool LaserPattern::extractEdgeCloud(const pcl::PointCloud<pcl::PointXYZI>::Ptr i
       }
     }
   }
-#if RSDEBUG
+#if LCDEBUG
   INFO << "roi points num: " << roi_cloud_ptr->size() << REND;
 #endif
   if (roi_cloud_ptr->size() < 12)
@@ -274,12 +274,12 @@ bool LaserPattern::extractEdgeCloud(const pcl::PointCloud<pcl::PointXYZI>::Ptr i
   }
 
   int edge_cloud_num = edge_cloud_ptr->size();
-#if RSDEBUG
+#if LCDEBUG
   INFO << "edge points num: " << edge_cloud_num << REND;
 #endif
   if (edge_cloud_num < 12 || edge_cloud_num > input_cloud_ptr->height * 2)
   {
-#if RSDEBUG
+#if LCDEBUG
     WARN << "edge points num is wrong! " << REND;
 #endif
     edge_cloud_ptr->clear();
@@ -345,7 +345,7 @@ bool LaserPattern::computeCloudCornersAuto(const pcl::PointCloud<pcl::PointXYZ>:
   std::vector<pcl::PointCloud<pcl::PointXYZ> > v_line_cloud;
   if (!seperateEdgeCloud(edge_cloud_ptr, v_line_coeff, v_line_cloud))
   {
-#if RSDEBUG
+#if LCDEBUG
     WARN << "fail to seperate line!" << REND;
 #endif
     return false;
@@ -365,7 +365,7 @@ bool LaserPattern::computeCloudCornersAuto(const pcl::PointCloud<pcl::PointXYZ>:
     pcl::PointXYZ intersect_point;
     if (!computeLinesIntersect(v_line_coeff[j], v_line_coeff[(j + 1) % 4], intersect_point))
     {
-#if RSDEBUG
+#if LCDEBUG
       WARN << "fail to compute line intersection!" << REND;
 #endif
       return false;
@@ -400,12 +400,12 @@ bool LaserPattern::computeCloudCornersAuto(const pcl::PointCloud<pcl::PointXYZ>:
     lidar_corner_cloud_ptr->points.emplace_back(point);
   }
 
-#if RSDEBUG
+#if LCDEBUG
   INFO << "corner points num: " << lidar_corner_cloud_ptr->size() << REND;
 #endif
   if (lidar_corner_cloud_ptr->size() != 4)
   {
-#if RSDEBUG
+#if LCDEBUG
     WARN << "corner points num is wrong!" << REND;
 #endif
     return false;

@@ -4,7 +4,7 @@
  * Suteng Innovation Technology Co., Ltd. www.cicv.ai
 
  * This software is provided to you directly by cicv and might
- * only be used to access cicv LiDAR. Any compilation,
+ * only be used to LiDAR and camera calibration. Any compilation,
  * modification, exploration, reproduction and redistribution are
  * restricted without cicv's prior consent.
 
@@ -130,7 +130,7 @@ bool MonoPattern::checkIds(const std::vector<aruco::Marker>& markers)
 
   if (detected_marker_num < marker_ids_.size() * 0.4)
   {
-#if RSDEBUG
+#if LCDEBUG
     WARN << "detected marker num is: " << detected_marker_num << REND;
 #endif
     return false;
@@ -143,21 +143,21 @@ bool MonoPattern::computeMarkerBoardPose(cv::Mat& input_image, cv::Mat& transfor
   // detect markers
   std::vector<aruco::Marker> markers = marker_detector_.detect(input_image);
 
-#if RSDEBUG
+#if LCDEBUG
   INFO << "detected marker num: " << markers.size() << REND;
 #endif
 
-#if RSDEBUG
+#if LCDEBUG
   INFO << "detect marker id: ";
 #endif
   for (auto& marker : markers)
   {
-#if RSDEBUG
+#if LCDEBUG
     INFO << marker.id << " ";
 #endif
     marker.draw(input_image, cv::Scalar(0, 0, 255), 2);
   }
-#if RSDEBUG
+#if LCDEBUG
   INFO << REND;
 #endif
 

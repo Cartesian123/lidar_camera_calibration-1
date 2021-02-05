@@ -4,7 +4,7 @@
  * Suteng Innovation Technology Co., Ltd. www.cicv.ai
 
  * This software is provided to you directly by cicv and might
- * only be used to access cicv LiDAR. Any compilation,
+ * only be used to LiDAR and camera calibration. Any compilation,
  * modification, exploration, reproduction and redistribution are * restricted without cicv's prior consent.
 
  * THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESSED OR IMPLIED
@@ -114,7 +114,7 @@ bool computePlaneModel(const pcl::PointCloud<pcl::PointXYZ>::Ptr input_cloud_ptr
 {
   if (input_cloud_ptr->size() < 5)
   {
-#if RSDEBUG
+#if LCDEBUG
     WARN << "too less points to fit a plane!" << REND;
 #endif
     return false;
@@ -128,7 +128,7 @@ bool computePlaneModel(const pcl::PointCloud<pcl::PointXYZ>::Ptr input_cloud_ptr
   ransac.setMaxIterations(100);
   if (!ransac.computeModel())
   {
-#if RSDEBUG
+#if LCDEBUG
     WARN << "fail to compute plane model!" << REND;
 #endif
     return false;
@@ -176,7 +176,7 @@ bool computePlaneModelNormal(const pcl::PointCloud<pcl::PointXYZ>::Ptr input_clo
 {
   if (input_cloud_ptr->size() < 5)
   {
-#if RSDEBUG
+#if LCDEBUG
     WARN << "too less points to fit a plane!" << REND;
 #endif
     return false;
@@ -195,7 +195,7 @@ bool computePlaneModelNormal(const pcl::PointCloud<pcl::PointXYZ>::Ptr input_clo
   ransac.setDistanceThreshold(0.04);
   if (!ransac.computeModel())
   {
-#if RSDEBUG
+#if LCDEBUG
     WARN << "fail to compute plane model!" << REND;
 #endif
     return false;
@@ -237,7 +237,7 @@ bool computeLineModel(const pcl::PointCloud<pcl::PointXYZ>::Ptr input_cloud_ptr,
 {
   if (input_cloud_ptr->size() < 3)
   {
-#if RSDEBUG
+#if LCDEBUG
     WARN << "too less points to fit a line!" << REND;
 #endif
     return false;
@@ -248,7 +248,7 @@ bool computeLineModel(const pcl::PointCloud<pcl::PointXYZ>::Ptr input_cloud_ptr,
   ransac.setDistanceThreshold(0.02);
   if (ransac.computeModel())
   {
-#if RSDEBUG
+#if LCDEBUG
     WARN << "fail to compute line model!" << REND;
 #endif
     return false;
@@ -289,7 +289,7 @@ bool seperateEdgeCloud(const pcl::PointCloud<pcl::PointXYZ>::Ptr input_cloud_ptr
     line_segment.segment(*line_inliers, *line_coeff);
     if (line_inliers->indices.size() < 3)
     {
-#if RSDEBUG
+#if LCDEBUG
       WARN << "fail to seperate lines!" << REND;
 #endif
       return false;
