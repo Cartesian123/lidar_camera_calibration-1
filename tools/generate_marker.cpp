@@ -44,8 +44,8 @@ void generate_block(const std::string& image_name, const int& marker_x, const in
       }
     }
   }
-  imshow("grid", raw_img);
-  waitKey();
+  // imshow("grid", raw_img);
+  // waitKey();
   imwrite(image_name, raw_img);
 }
 
@@ -62,8 +62,20 @@ void gengerate_aruco_grid_code(const int& marker_id, const int& marker_x, const 
                                                                      float(marker_separation), mdictionary, marker_id);
   board->draw(imageSize, marker_img, marker_separation, 1);
 
-  imshow("grid", marker_img);
-  waitKey();
+  cv::Ptr<cv::aruco::DetectorParameters> detectorParams = cv::aruco::DetectorParameters::create();
+  detectorParams->minDistanceToBorder = 0;
+  vector<int> ids;
+  vector<vector<Point2f> > corners, rejected;
+  vector<Vec3d> rvecs, tvecs;
+  // detect markers and estimate pose
+  cv::aruco::detectMarkers(marker_img, mdictionary, corners, ids, detectorParams, rejected);
+  for (int i = 0; i < ids.size(); ++i)
+  {
+    std::cout << "id: " << ids.at(i) << std::endl; /* " x: "<<corners */
+  }
+
+  // imshow("grid", marker_img);
+  // waitKey();
   std::string image_name = "aruco_grid_marker_" + std::to_string(marker_id) + ".jpg";
   imwrite(image_name, marker_img);
 }
